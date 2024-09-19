@@ -162,7 +162,7 @@ else:
                 if type_of_fight == 'map/dung':
                     st.write('Fight is analyzing')
 
-                    uniq_comb_of_comp = list(itertools.combinations(d.keys(), num_companions))
+                    uniq_comb_of_comp = list(itertools.combinations(d.keys(), num_companions))[::-1]
                     if active_potion:
                         active_potion_inf = 1 + 0.1*(1+rune_lvl) if active_potion_size == 'small' else 1 + 0.15*(1+rune_lvl) if active_potion_size == 'medium' else 1 + 0.25*(1+rune_lvl)
                         
@@ -175,7 +175,6 @@ else:
                         elif active_potion_type == 'int': 
                             char_i /= active_potion_inf
                         
-                    st.write(char_s)
                     for i,comps in enumerate(uniq_comb_of_comp[:]):
                         for type_of_potion in ['s','d','c','i']:
 
@@ -215,7 +214,7 @@ else:
 
                             progress_bar.progress((i + 1) / len(uniq_comb_of_comp))
                             if cnt > max_cnt:
-                                st.write(f"Based on {fight_counter} simulation you have {cnt:.2f}% chance to win. Comps: {comps}. Potion: {type_of_potion} {potion_size} potion, poey: {your_poey}")
+                                st.write(f"TFS found better system: Based on {fight_counter} simulation you have {cnt:.2f}% chance to win. Comps: {comps}. Potion: {type_of_potion} {potion_size} potion, poey: {your_poey}")
                                 max_cnt = cnt
 
                                 if max_cnt == 100:
