@@ -8,7 +8,7 @@ import contextlib
 st.set_page_config(page_title='TFS', page_icon=':shield:')
 st.title('Tanoth Fight Simulator')
 
-st.markdown('Welcome to the website of our implementation of the [Tanoth](https://tanoth.pl) battle simulator. We created it for one main purpose: to be able to select companions and potions for dungeon and map battles. How we do it and why we do it this way is described by us here. We hope you find our work useful. ')
+st.markdown('Welcome to the website where we implement our project: the [Tanoth](https://tanoth.pl) battle simulator. We created it for one main purpose: to be able to select optimal companions and potions for dungeon and map battles. How and why we do it this way is described here. We hope you find our work useful. ')
 
 
 def load_image(file_name):
@@ -55,7 +55,7 @@ else:
 
     your_lvl = convert_to_int(st.text_input('Please enter your lvl:'))
 
-    st.write('Please enter now your stats.')
+    st.write('Please enter your stats now.')
 
 
     type_of_fight = st.radio('Select which type of fight do you want to analyze',('map/dung','pvp fight'))
@@ -71,10 +71,10 @@ else:
 
         st.write('Also we need your main character stats separately')
 
-        char_s = convert_to_int(st.text_input('Please enter char strenght:'))
-        char_d = convert_to_int(st.text_input('Please enter char dexternity:'))
-        char_c = convert_to_int(st.text_input('Please enter char constitution:'))
-        char_i = convert_to_int(st.text_input('Please enter char intelligence:'))
+        char_s = convert_to_int(st.text_input('Please enter character strenght:'))
+        char_d = convert_to_int(st.text_input('Please enter character dexternity:'))
+        char_c = convert_to_int(st.text_input('Please enter character constitution:'))
+        char_i = convert_to_int(st.text_input('Please enter character intelligence:'))
 
         d = {
             'galwin': [9.33, 4.66, 4.66, 4.66],
@@ -130,7 +130,7 @@ else:
                 rune_lvl = int(rune_lvl)
                 rune_lvl /= 1000
             #bcupdate  skull_lvl = int(st.text_input('Please provide your Skull lvl'))
-            potion_size = st.radio('Select the size of potion to be considered',('small','medium','big'))
+            potion_size = st.radio('Select the size of potion to be considered in simulations',('small','medium','big'))
 
             if active_potion := st.checkbox('Select this if you have an active potion'):
                 active_potion_size = st.radio('Select size of potion',('small','medium','big'))
@@ -144,17 +144,18 @@ else:
             enemy_s = convert_to_int(st.text_input('Please enter enemy strenght:'))
             enemy_d = convert_to_int(st.text_input('Please enter enemy dexternity:'))
             enemy_c = convert_to_int(st.text_input('Please enter enemy constitution:'))
-            if st.checkbox('Click here if you rather would like to type enemy hp by hand (recommended)'):
+            if st.checkbox('Click here if you would rather prefer to type enemy hp by hand (recommended in dungeon/map battles)'):
                 enemy_hp = convert_to_int(st.text_input('Please enter enemy hp'))
             enemy_i = convert_to_int(st.text_input('Please enter enemy intelligence:'))
 
-            enemy_dmg = st.text_input('Add enemy weapon damage in form 50-100 (Based on the visual look of the weapon, usually 1-2)')
+            enemy_dmg = st.text_input("Please enter enemy's weapon damage in form 50-100 (Based on the visual look of the weapon, usually 1-2 for dungeon enemies)")
             
             if len(enemy_dmg) > 1: enemy_dmg_min, enemy_dmg_max = [int(x) for x in enemy_dmg.split('-')]
             #bcupdate  enemy_block = st.text_input('Add enemy block chance in form 27% (Based on the visual look of the shield, usually 5%)')
             #bcupdate  enemy_block = int(enemy_block.replace('%',''))
             enemy_armor =  st.text_input('Add enemy armor')
             if enemy_armor.isdigit(): enemy_armor = int(enemy_armor)
+            potion_translation = {'s':'strength','d':'dexternity','c':'constitution','i':'intelligence'}
 
             if fight_button:= st.button('Analyze fight'):
                 progress_bar = st.progress(0)
@@ -162,7 +163,11 @@ else:
                 if type_of_fight == 'map/dung':
                     st.write('Fight is analyzing')
 
-                    uniq_comb_of_comp = list(itertools.combinations(d.keys(), num_companions))[::-1]
+                    uniq_comb_of_comp = sorted([tuple(sorted(comb)) for comb in itertools.combinations(d.keys(), num_companions)][::-1])
+
+
+                    idx = uniq_comb_of_comp.index(tuple(sorted(selected_images)))
+
                     if active_potion:
                         active_potion_inf = 1 + 0.1*(1+rune_lvl) if active_potion_size == 'small' else 1 + 0.15*(1+rune_lvl) if active_potion_size == 'medium' else 1 + 0.25*(1+rune_lvl)
                         
@@ -174,8 +179,7 @@ else:
                             char_c /= active_potion_inf
                         elif active_potion_type == 'int': 
                             char_i /= active_potion_inf
-                        
-                    for i,comps in enumerate(uniq_comb_of_comp[:]):
+                    for i,comps in enumerate([list(uniq_comb_of_comp[idx])] + uniq_comb_of_comp):
                         for type_of_potion in ['s','d','c','i']:
 
                             comp_s = round((d[comps[0]][0] + d[comps[1]][0] + d[comps[2]][0])*your_lvl) 
@@ -191,7 +195,6 @@ else:
                                 char_c *= stat_potion_inf
                             elif type_of_potion == 'i': 
                                 char_i *= stat_potion_inf
-
                             additional_hp_from_poey_char = (1.25*your_lvl**2 + 24.4*char_c - 96.4*your_lvl -4948)*your_poey*(0.3*(1+rune_lvl))
                             additional_hp_from_poey_enemy = 0
 
@@ -213,8 +216,12 @@ else:
                             cnt = 100*sum(fight(p1,p2) for _ in range(fight_counter))/fight_counter
 
                             progress_bar.progress((i + 1) / len(uniq_comb_of_comp))
-                            if cnt > max_cnt:
-                                st.write(f"TFS found better system: Based on {fight_counter} simulation you have {cnt:.2f}% chance to win. Comps: {comps}. Potion: {type_of_potion} {potion_size} potion, poey: {your_poey}")
+
+                            if i == 0:
+                                st.write(f'This is your current pick: {comps}. And TFS calculate your chance to win as {cnt} with Potion of Eternal Youth: {"active" if your_poey == 1 else "not active"} and {potion_size} {potion_translation[type_of_potion]} potion.')
+                            if cnt > max_cnt and i !=0:
+
+                                st.write(f"TFS found a better configuration: Based on {fight_counter} simulation you have {cnt:.2f}% chance to win. Comps: {comps}. Potion: {potion_size} {potion_translation[type_of_potion]}  potion, Potion of the Eternal Youth: {'active' if your_poey == 1 else 'not active'}")
                                 max_cnt = cnt
 
                                 if max_cnt == 100:
