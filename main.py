@@ -215,7 +215,7 @@ else:
                             fight_counter = 80
                             cnt = 100*sum(fight(p1,p2) for _ in range(fight_counter))/fight_counter
 
-                            progress_bar.progress((i + 1) / len(uniq_comb_of_comp))
+                            progress_bar.progress((i + 1) / (len(uniq_comb_of_comp)+1))
 
                             if i == 0:
                                 st.write(f'This is your current pick: {comps}. And TFS calculate your chance to win as {cnt} with Potion of Eternal Youth: {"active" if your_poey == 1 else "not active"} and {potion_size} {potion_translation[type_of_potion]} potion.')
