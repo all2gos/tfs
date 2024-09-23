@@ -1,6 +1,6 @@
 import numpy as np
 import random
-def get_fight_attributes(strength, dxt, condition, int, lvl, armor, min_weapon, max_weapon, hp_by_hand, additional_hp_from_poey):
+def get_fight_attributes(strength, dxt, condition, int, lvl, armor, min_weapon, max_weapon, hp_by_hand, additional_hp_from_poey, block_chance, crit_chance):
     
 
     ap = dxt +10 
@@ -11,7 +11,7 @@ def get_fight_attributes(strength, dxt, condition, int, lvl, armor, min_weapon, 
     max_dmg = 2.18*lvl + 18.67*strength + 121.4*max_weapon -22352.3
 
 
-    return {'min_dmg':min_dmg,'max_dmg':max_dmg, 'ap':ap, 'hp':hp+additional_hp_from_poey, 'sp':sp, 'redu':redu}
+    return {'min_dmg':min_dmg,'max_dmg':max_dmg, 'ap':ap, 'hp':hp+additional_hp_from_poey, 'sp':sp, 'redu':redu, 'block_chance':block_chance, 'crit_chance':crit_chance}
 
 
 
@@ -34,11 +34,30 @@ def fight(p1, p2):
         
         who_attack = random.choices([0,1], weights=[duelist1['ap'],duelist2['ap']], k=1)[0]
 
+
         if who_attack == 0:
-            duelist2['hp'] -= random.randint(duelist1['min_dmg'],duelist1['max_dmg'])
+
+            #block = random.choices([1,0], weights=[duelist2['block_chance'],1 - duelist2['block_chance']], k=1)[0]
+            #crit = random.choices([1,0], weights=[duelist1['crit_chance'],1 - duelist1['crit_chance']], k=1)[0]
+            
+            #hit = random.randint(duelist1['min_dmg'],duelist1['max_dmg']) 
+
+            #hit *= random.uniform(1.4,2) if crit == 1 else 1
+            #hit *= random.uniform(0.5,0.8) if block ==1 else 1
+
+            duelist2['hp'] -= random.randint(duelist1['min_dmg'],duelist1['max_dmg']) 
 
         else:
-            duelist1['hp'] -= random.randint(duelist2['min_dmg'],duelist2['max_dmg'])
+
+            #block = random.choices([1,0], weights=[duelist1['block_chance'],1 - duelist1['block_chance']], k=1)[0]
+            #crit = random.choices([1,0], weights=[duelist2['crit_chance'],1 - duelist2['crit_chance']], k=1)[0]
+
+            #hit = random.randint(duelist2['min_dmg'],duelist2['max_dmg']) 
+
+            #hit *= random.uniform(1.4,2) if crit == 1 else 1
+            #hit *= random.uniform(0.5,0.8) if block ==1 else 1
+
+            duelist1['hp'] -= random.randint(duelist2['min_dmg'],duelist2['max_dmg']) 
 
     return 1 if duelist2['hp'] <1 else 0
 

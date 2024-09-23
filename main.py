@@ -4,6 +4,8 @@ import os
 from mechanics import *
 import itertools
 import contextlib
+from dungeon_database import dung_dict
+import math
 
 st.set_page_config(page_title='TFS', page_icon=':shield:')
 st.title('Tanoth Fight Simulator')
@@ -65,14 +67,14 @@ else:
 
     if type_of_fight == 'map/dung':
         your_s = convert_to_int(st.text_input('Please enter your strenght in dun/map:'))
-        your_d = convert_to_int(st.text_input('Please enter your dexternity in dun/map:'))
+        your_d = convert_to_int(st.text_input('Please enter your dexterity in dun/map:'))
         your_c = convert_to_int(st.text_input('Please enter your constitution in dun/map:'))
         your_i = convert_to_int(st.text_input('Please enter your intelligence in dun/map:'))
 
         st.write('Also we need your main character stats separately')
 
         char_s = convert_to_int(st.text_input('Please enter character strenght:'))
-        char_d = convert_to_int(st.text_input('Please enter character dexternity:'))
+        char_d = convert_to_int(st.text_input('Please enter character dexterity:'))
         char_c = convert_to_int(st.text_input('Please enter character constitution:'))
         char_i = convert_to_int(st.text_input('Please enter character intelligence:'))
 
@@ -108,7 +110,7 @@ else:
 
         if str(char_i).isdigit():
             if num_companions > 0:
-                st.write(f'Based on your companions selection we can compute that your character and all eq stats are: {int(your_s - comp_s)} strenght, {int(your_d - comp_d)} dexternity, {int(your_c - comp_c)} constitution, {int(your_i - comp_i)} intelligence')
+                st.write(f'Based on your companions selection we can compute that your character and all eq stats are: {int(your_s - comp_s)} strenght, {int(your_d - comp_d)} dexterity, {int(your_c - comp_c)} constitution, {int(your_i - comp_i)} intelligence')
 
             your_s_comps_eq = int(your_s - comp_s-char_s)
             your_d_comps_eq = int(your_d - comp_d-char_d)
@@ -117,8 +119,8 @@ else:
 
             your_dmg = st.text_input('Add your weapon damage in form 50-100')
             if len(your_dmg) > 0: your_dmg_min, your_dmg_max = [int(x) for x in your_dmg.split('-')]
-            #bcupdate  your_block = st.text_input('Add your block chance in form 27%')
-            #bcupdate  your_block = int(your_block.replace('%',''))
+            your_block = st.text_input('Add your block chance in form 27%')
+            your_block = int(your_block.replace('%',''))
             your_armor =  st.text_input('Add your armor')
             if your_armor.isdigit(): your_armor = int(your_armor)
 
@@ -129,7 +131,8 @@ else:
             if rune_lvl.isdigit(): 
                 rune_lvl = int(rune_lvl)
                 rune_lvl /= 1000
-            #bcupdate  skull_lvl = int(st.text_input('Please provide your Skull lvl'))
+            skull_lvl = st.text_input('Please provide your Skull lvl')
+            if skull_lvl.isdigit(): skull_lvl = int(skull_lvl)
             potion_size = st.radio('Select the size of potion to be considered in simulations',('small','medium','big'))
 
             if active_potion := st.checkbox('Select this if you have an active potion'):
@@ -139,30 +142,80 @@ else:
             if rune_lvl: stat_potion_inf = 1+ 0.1*(1+rune_lvl) if potion_size == 'small' else 1+ 0.15*(1+rune_lvl) if potion_size == 'medium' else 1 + 0.25*(1+rune_lvl)
 
             st.markdown('#### Enemy info')  
-            enemy_hp = 0
-            enemy_lvl = convert_to_int(st.text_input('Please enter enemy level:'))
-            enemy_s = convert_to_int(st.text_input('Please enter enemy strenght:'))
-            enemy_d = convert_to_int(st.text_input('Please enter enemy dexternity:'))
-            enemy_c = convert_to_int(st.text_input('Please enter enemy constitution:'))
-            if st.checkbox('Click here if you would rather prefer to type enemy hp by hand (recommended in dungeon/map battles)'):
-                enemy_hp = convert_to_int(st.text_input('Please enter enemy hp'))
-            enemy_i = convert_to_int(st.text_input('Please enter enemy intelligence:'))
 
-            enemy_dmg = st.text_input("Please enter enemy's weapon damage in form 50-100 (Based on the visual look of the weapon, usually 1-2 for dungeon enemies)")
-            
-            if len(enemy_dmg) > 1: enemy_dmg_min, enemy_dmg_max = [int(x) for x in enemy_dmg.split('-')]
-            #bcupdate  enemy_block = st.text_input('Add enemy block chance in form 27% (Based on the visual look of the shield, usually 5%)')
-            #bcupdate  enemy_block = int(enemy_block.replace('%',''))
-            enemy_armor =  st.text_input('Add enemy armor')
-            if enemy_armor.isdigit(): enemy_armor = int(enemy_armor)
-            potion_translation = {'s':'strength','d':'dexternity','c':'constitution','i':'intelligence'}
+            enemy_type_info = st.radio('',('I want to pick the enemy from the prepared database','I want to type the stats of my enemy by hand'))
+
+
+            if enemy_type_info == 'I want to type the stats of my enemy by hand':
+                enemy_hp = 0
+                enemy_lvl = convert_to_int(st.text_input('Please enter enemy level:'))
+                enemy_s = convert_to_int(st.text_input('Please enter enemy strenght:'))
+                enemy_d = convert_to_int(st.text_input('Please enter enemy dexterity:'))
+                enemy_c = convert_to_int(st.text_input('Please enter enemy constitution:'))
+                if st.checkbox('Click here if you would rather prefer to type enemy hp by hand (recommended in dungeon/map battles)'):
+                    enemy_hp = convert_to_int(st.text_input('Please enter enemy hp'))
+                enemy_i = convert_to_int(st.text_input('Please enter enemy intelligence:'))
+
+                enemy_dmg = st.text_input("Please enter enemy's weapon damage in form 50-100 (Based on the visual look of the weapon, usually 1-2 for dungeon enemies)")
+                
+                if len(enemy_dmg) > 1: enemy_dmg_min, enemy_dmg_max = [int(x) for x in enemy_dmg.split('-')]
+                enemy_block = st.text_input('Add enemy block chance in form 27% (Based on the visual look of the shield, usually, in dungeon: 5%)')
+                enemy_block = int(enemy_block.replace('%',''))
+                enemy_armor =  st.text_input('Add enemy armor')
+                if enemy_armor.isdigit(): enemy_armor = int(enemy_armor)
+            else:
+                
+                select_floor = st.text_input('Please provide floor of dungeon on which you are currently on.')
+                
+                if select_floor in dung_dict:
+                    st.write(f"You picked floor {select_floor}, {dung_dict[select_floor]['name']}")
+                    
+                    oculus = st.checkbox('I have oculus!')
+                    oposing_s = st.text_input('Sum of strength which your eq substract WITHOUT OCULUS')
+                    oposing_d = st.text_input('Sum of dexterity which your eq substract WITHOUT OCULUS')
+                    oposing_c = st.text_input('Sum of constitution which your eq substract WITHOUT OCULUS')
+                    oposing_i = st.text_input('Sum of intelligence which your eq substract WITHOUT OCULUS')
+
+                    oposing_s = int(oposing_s) if oposing_s.isdigit() else 0
+                    oposing_d = int(oposing_d) if oposing_d.isdigit() else 0
+                    oposing_c = int(oposing_c) if oposing_c.isdigit() else 0
+                    oposing_i = int(oposing_i) if oposing_i.isdigit() else 0
+
+                    if oculus: 
+                        oculus = 1 
+                    else: 
+                        oculus = 0
+
+                    enemy_lvl = dung_dict[select_floor]['level'] 
+                    enemy_s = dung_dict[select_floor]['strengh'] - 1.5*your_lvl*oculus - oposing_s
+                    enemy_d = dung_dict[select_floor]['dexterity']- 1.5*your_lvl*oculus - oposing_d
+                    enemy_c = dung_dict[select_floor]['constitution']- 1.5*your_lvl*oculus - oposing_c
+                    enemy_hp = dung_dict[select_floor]['hp'] 
+
+                    enemy_i = dung_dict[select_floor]['intelligence']- 1.5*your_lvl*oculus - oposing_i
+                    enemy_dmg_min, enemy_dmg_max = 1,2
+                    enemy_block = 5
+                    enemy_armor =  dung_dict[select_floor]['armor']
+
+
+                    hp_correct = st.checkbox('If you have any subtractive stats eq we strongly recommend to enter hp of your enemy by hand hence we do not have good aprox for hp of dung enemies yet.')
+
+                    if hp_correct:
+                        enemy_hp = st.text_input('Please provide hp of your enemy')
+                        if enemy_hp.isdigit(): enemy_hp = int(enemy_hp)
+                else:
+                    st.write('Sorry we do not support prepared data for your floor. Alternatively you enter you dungeon floor wrongly.')
+
+
+            potion_translation = {'s':'strength','d':'dexterity','c':'constitution','i':'intelligence'}
 
             if fight_button:= st.button('Analyze fight'):
                 progress_bar = st.progress(0)
                 max_cnt = 0.1
                 if type_of_fight == 'map/dung':
-                    st.write('Fight is analyzing')
+                    st.write('Fight is being analyzed')
 
+                    st.write(f'Info about your enemy: lvl: {enemy_lvl}, strength: {enemy_s}, hp: {enemy_hp}, damage: {enemy_dmg_min}-{enemy_dmg_max}')
                     uniq_comb_of_comp = sorted([tuple(sorted(comb)) for comb in itertools.combinations(d.keys(), num_companions)][::-1])
 
 
@@ -203,16 +256,16 @@ else:
                                 int(char_c + your_c_comps_eq + comp_c), 
                                 int(char_i + your_i_comps_eq + comp_i), 
                                 your_lvl, your_armor, your_dmg_min, your_dmg_max,
-                                0, additional_hp_from_poey_char]
+                                0, additional_hp_from_poey_char, your_block/100, 0.05+0.02*skull_lvl]
                             
                             p2 = [enemy_s, 
                                 enemy_d, 
                                 enemy_c, 
                                 enemy_i, 
                                 enemy_lvl, enemy_armor, enemy_dmg_min, enemy_dmg_max, 
-                                enemy_hp, additional_hp_from_poey_enemy]
+                                enemy_hp, additional_hp_from_poey_enemy, enemy_block/100, 0.05]
 
-                            fight_counter = 80
+                            fight_counter = 50
                             cnt = 100*sum(fight(p1,p2) for _ in range(fight_counter))/fight_counter
 
                             progress_bar.progress((i + 1) / (len(uniq_comb_of_comp)+1))
@@ -221,11 +274,11 @@ else:
                                 st.write(f'This is your current pick: {comps}. And TFS calculate your chance to win as {cnt} with Potion of Eternal Youth: {"active" if your_poey == 1 else "not active"} and {potion_size} {potion_translation[type_of_potion]} potion.')
                             if cnt > max_cnt and i !=0:
 
-                                st.write(f"TFS found a better configuration: Based on {fight_counter} simulation you have {cnt:.2f}% chance to win. Comps: {comps}. Potion: {potion_size} {potion_translation[type_of_potion]}  potion, Potion of the Eternal Youth: {'active' if your_poey == 1 else 'not active'}")
+                                st.write(f"TFS found a better configuration: Based on {fight_counter} simulation you have {cnt:.2f} relative points to win. Comps: {comps}. Potion: {potion_size} {potion_translation[type_of_potion]}  potion, Potion of the Eternal Youth: {'active' if your_poey == 1 else 'not active'}")
                                 max_cnt = cnt
 
-                                if max_cnt == 100:
-                                    break
+                            if math.isclose(max_cnt, 100.0, abs_tol=0.01):
+                                break
 
                             if type_of_potion == 's': 
                                 char_s /= stat_potion_inf 
