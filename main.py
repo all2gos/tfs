@@ -103,10 +103,11 @@ else:
             'eliane':[3.5,8.17,4.66,7]
         }
 
-        if your_lvl: comp_s = sum(d[x][0] for x in selected_images) * your_lvl
-        if your_lvl: comp_d = sum(d[x][1] for x in selected_images) * your_lvl
-        if your_lvl: comp_c = sum(d[x][2] for x in selected_images) * your_lvl
-        if your_lvl: comp_i = sum(d[x][3] for x in selected_images) * your_lvl
+        if your_lvl:
+            comp_s = sum(d[x][0] for x in selected_images) * your_lvl
+            comp_d = sum(d[x][1] for x in selected_images) * your_lvl
+            comp_c = sum(d[x][2] for x in selected_images) * your_lvl
+            comp_i = sum(d[x][3] for x in selected_images) * your_lvl
 
         if str(char_i).isdigit():
             if num_companions > 0:
@@ -119,8 +120,9 @@ else:
 
             your_dmg = st.text_input('Add your weapon damage in form 50-100')
             if len(your_dmg) > 0: your_dmg_min, your_dmg_max = [int(x) for x in your_dmg.split('-')]
-            your_block = st.text_input('Add your block chance in form 27%')
-            your_block = int(your_block.replace('%',''))
+            your_block = st.text_input('Add your block chance in form 27%').replace('%','')
+            if your_block.isdigit(): your_block = int(your_block)
+            st.write(your_block)
             your_armor =  st.text_input('Add your armor')
             if your_armor.isdigit(): your_armor = int(your_armor)
 
@@ -129,8 +131,7 @@ else:
                 your_poey = 1
             rune_lvl = st.text_input('Please provide your Ruby level')
             if rune_lvl.isdigit(): 
-                rune_lvl = int(rune_lvl)
-                rune_lvl /= 1000
+                rune_lvl = int(rune_lvl)/1000
             skull_lvl = st.text_input('Please provide your Skull lvl')
             if skull_lvl.isdigit(): skull_lvl = int(skull_lvl)
             potion_size = st.radio('Select the size of potion to be considered in simulations',('small','medium','big'))
@@ -190,7 +191,7 @@ else:
                     enemy_s = dung_dict[select_floor]['strengh'] - 1.5*your_lvl*oculus - oposing_s
                     enemy_d = dung_dict[select_floor]['dexterity']- 1.5*your_lvl*oculus - oposing_d
                     enemy_c = dung_dict[select_floor]['constitution']- 1.5*your_lvl*oculus - oposing_c
-                    enemy_hp = dung_dict[select_floor]['hp'] 
+                    enemy_hp = int(dung_dict[select_floor]['hp'] * 1.45)
 
                     enemy_i = dung_dict[select_floor]['intelligence']- 1.5*your_lvl*oculus - oposing_i
                     enemy_dmg_min, enemy_dmg_max = 1,2
@@ -202,21 +203,21 @@ else:
 
                     if hp_correct:
                         enemy_hp = st.text_input('Please provide hp of your enemy')
-                        if enemy_hp.isdigit(): enemy_hp = int(enemy_hp)
+                        if enemy_hp.isdigit(): enemy_hp = int(int(enemy_hp)*1.45)
                 else:
                     st.write('Sorry we do not support prepared data for your floor. Alternatively you enter you dungeon floor wrongly.')
 
 
             potion_translation = {'s':'strength','d':'dexterity','c':'constitution','i':'intelligence'}
-
+            c = 0
             if fight_button:= st.button('Analyze fight'):
                 progress_bar = st.progress(0)
-                max_cnt = 0.1
+                max_cnt = 0
                 if type_of_fight == 'map/dung':
                     st.write('Fight is being analyzed')
 
-                    st.write(f'Info about your enemy: lvl: {enemy_lvl}, strength: {enemy_s}, hp: {enemy_hp}, damage: {enemy_dmg_min}-{enemy_dmg_max}')
-                    uniq_comb_of_comp = sorted([tuple(sorted(comb)) for comb in itertools.combinations(d.keys(), num_companions)][::-1])
+                    #st.write(f'Info about your enemy: lvl: {enemy_lvl}, strength: {enemy_s}, hp: {enemy_hp}, damage: {enemy_dmg_min}-{enemy_dmg_max}')
+                    uniq_comb_of_comp = sorted([tuple(sorted(comb)) for comb in itertools.combinations(d.keys(), num_companions)][:])
 
 
                     idx = uniq_comb_of_comp.index(tuple(sorted(selected_images)))
@@ -234,7 +235,6 @@ else:
                             char_i /= active_potion_inf
                     for i,comps in enumerate([list(uniq_comb_of_comp[idx])] + uniq_comb_of_comp):
                         for type_of_potion in ['s','d','c','i']:
-
                             comp_s = round((d[comps[0]][0] + d[comps[1]][0] + d[comps[2]][0])*your_lvl) 
                             comp_d = round((d[comps[0]][1] + d[comps[1]][1] + d[comps[2]][1])*your_lvl)
                             comp_c = round((d[comps[0]][2] + d[comps[1]][2] + d[comps[2]][2])*your_lvl)
@@ -270,11 +270,42 @@ else:
 
                             progress_bar.progress((i + 1) / (len(uniq_comb_of_comp)+1))
 
+                            full_name_of_comps =  {
+                                'galwin': "Sir Galwin",
+                                'theo': "Theodore the Knight",
+                                'melpheus': "Melpheus the Magician",
+                                'paul': "Paul the Monk",
+                                'rubus':"Rubus the Druid",
+                                'etheria':"Etheria",
+                                'lorica':'Lorica the Huntress',
+                                'metrix':'Metrix the Enchantress',
+                                'askar':'Askar the Axeman',
+                                'thorax':'Thorax',
+                                'aurum':"Thief's Aurum",
+                                'forbis':'Forbis the Marksman',
+                                'urk':'Urk ka the Warrior',
+                                'ganuk':'Ganuk the Spy',
+                                'dark knight':'The Dark Knight',
+                                'tar':'Tar su the Orc Shaman',
+                                'tim':'Tim the Vagabond',
+                                'zor':'Zor the Troll Mage',
+                                'caro':'Caro the Warrior',
+                                'anja':'Anja the Assasin',
+                                'sylvia':'Sylvia the Witch',
+                                'eliane':'Princess Eliane'
+                            }
+
                             if i == 0:
-                                st.write(f'This is your current pick: {comps}. And TFS calculate your chance to win as {cnt} with Potion of Eternal Youth: {"active" if your_poey == 1 else "not active"} and {potion_size} {potion_translation[type_of_potion]} potion.')
+
+                                if cnt >= max_cnt:
+                                    statement = f'This is your current pick: {", ".join(full_name_of_comps[x] for x in comps)}. And TFS calculate your chance to win as {cnt}. Best possible potion configuration: Potion of Eternal Youth: {"active" if your_poey == 1 else "not active"} and {potion_size} {potion_translation[type_of_potion]} potion.'
+                                    c += 1
+                                    max_cnt = 0
+                                if c == 4:
+                                    st.write(statement)
                             if cnt > max_cnt and i !=0:
 
-                                st.write(f"TFS found a better configuration: Based on {fight_counter} simulation you have {cnt:.2f} relative points to win. Comps: {comps}. Potion: {potion_size} {potion_translation[type_of_potion]}  potion, Potion of the Eternal Youth: {'active' if your_poey == 1 else 'not active'}")
+                                st.write(f'TFS found a better configuration: Based on {fight_counter} simulation you have {cnt:.2f} relative points to win. Comps: {", ".join(full_name_of_comps[x] for x in comps)}. Potion: {potion_size} {potion_translation[type_of_potion]}  potion, Potion of the Eternal Youth: {"active" if your_poey == 1 else "not active"}')
                                 max_cnt = cnt
 
                             if math.isclose(max_cnt, 100.0, abs_tol=0.01):
