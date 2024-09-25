@@ -10,7 +10,7 @@ import math
 st.set_page_config(page_title='TFS', page_icon=':shield:')
 st.title('Tanoth Fight Simulator')
 
-st.markdown('Welcome to the website where we implement our project: the [Tanoth](https://tanoth.pl) battle simulator. We created it for one main purpose: to be able to select optimal companions and potions for dungeon and map battles. How and why we do it this way is described here. We hope you find our work useful. ')
+st.markdown('Welcome to the website where we implement our project: the [Tanoth](https://tanoth.pl) battle simulator. We created it for one main purpose: to be able to select optimal companions and potions for dungeon and map battles. How and why we do it this way is described here (soon). We hope you find our work useful. ')
 
 
 def load_image(file_name):
