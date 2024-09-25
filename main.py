@@ -122,7 +122,6 @@ else:
             if len(your_dmg) > 0: your_dmg_min, your_dmg_max = [int(x) for x in your_dmg.split('-')]
             your_block = st.text_input('Add your block chance in form 27%').replace('%','')
             if your_block.isdigit(): your_block = int(your_block)
-            st.write(your_block)
             your_armor =  st.text_input('Add your armor')
             if your_armor.isdigit(): your_armor = int(your_armor)
 
@@ -191,7 +190,7 @@ else:
                     enemy_s = dung_dict[select_floor]['strengh'] - 1.5*your_lvl*oculus - oposing_s
                     enemy_d = dung_dict[select_floor]['dexterity']- 1.5*your_lvl*oculus - oposing_d
                     enemy_c = dung_dict[select_floor]['constitution']- 1.5*your_lvl*oculus - oposing_c
-                    enemy_hp = int(dung_dict[select_floor]['hp'] * 1.45)
+                    enemy_hp = int(dung_dict[select_floor]['hp'] * 1.65)
 
                     enemy_i = dung_dict[select_floor]['intelligence']- 1.5*your_lvl*oculus - oposing_i
                     enemy_dmg_min, enemy_dmg_max = 1,2
@@ -203,7 +202,7 @@ else:
 
                     if hp_correct:
                         enemy_hp = st.text_input('Please provide hp of your enemy')
-                        if enemy_hp.isdigit(): enemy_hp = int(int(enemy_hp)*1.45)
+                        if enemy_hp.isdigit(): enemy_hp = int(int(enemy_hp)*1.65)
                 else:
                     st.write('Sorry we do not support prepared data for your floor. Alternatively you enter you dungeon floor wrongly.')
 
